@@ -245,6 +245,7 @@
 mod macros;
 mod content;
 mod env;
+mod matchers;
 mod output;
 mod runtime;
 #[cfg(feature = "serde")]
@@ -273,9 +274,13 @@ pub use crate::snapshot::{MetaData, Snapshot};
 /// You're unlikely to want to work with these objects but they
 /// are exposed for documentation primarily.
 pub mod internals {
+    pub use crate::content::yaml::parse_str;
     pub use crate::content::Content;
     #[cfg(feature = "filters")]
     pub use crate::filters::Filters;
+    pub use crate::matchers::{DefaultMatcher, Matcher};
+    #[cfg(feature = "yaml")]
+    pub use crate::matchers::YamlMatcher;
     pub use crate::runtime::AutoName;
     pub use crate::settings::SettingsBindDropGuard;
     pub use crate::snapshot::{MetaData, SnapshotContents};

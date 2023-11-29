@@ -12,6 +12,7 @@ use crate::env::{
     get_cargo_workspace, get_tool_config, memoize_snapshot_file, snapshot_update_behavior,
     OutputBehavior, SnapshotUpdateBehavior, ToolConfig,
 };
+use crate::matchers::{DefaultMatcher, Matcher};
 use crate::output::SnapshotPrinter;
 use crate::settings::Settings;
 use crate::snapshot::{MetaData, PendingInlineSnapshot, Snapshot, SnapshotContents};
@@ -634,6 +635,7 @@ pub fn assert_snapshot(
     assertion_file: &str,
     assertion_line: u32,
     expr: &str,
+    matcher: Option<Box<&dyn Matcher>>,
 ) -> Result<(), Box<dyn Error>> {
     let ctx = SnapshotAssertionContext::prepare(
         refval,
@@ -666,8 +668,15 @@ pub fn assert_snapshot(
         }
     });
 
+    let matcher = matcher.unwrap_or_else(|| Box::new(&DefaultMatcher {}));
+
     // pass if the snapshots are missing
-    if ctx.old_snapshot.as_ref().map(|x| x.contents()) == Some(new_snapshot.contents()) {
+    if ctx
+        .old_snapshot
+        .as_ref()
+        .map(|x| x.contents_str())
+        .is_some_and(|contents| matcher.match_contents(contents, new_snapshot.contents_str()))
+    {
         ctx.cleanup_passing()?;
 
         if tool_config.force_update_snapshots() {

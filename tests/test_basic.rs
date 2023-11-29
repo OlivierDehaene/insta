@@ -2,8 +2,24 @@
 use insta::assert_json_snapshot;
 #[cfg(feature = "yaml")]
 use insta::assert_yaml_snapshot;
+#[cfg(feature = "yaml")]
+use insta::internals::{YamlMatcher};
 use insta::{assert_debug_snapshot, assert_display_snapshot};
+use is_close::default;
+use serde::Deserialize;
 use std::fmt;
+
+#[derive(Deserialize, Debug)]
+struct Score(f32);
+
+impl PartialEq for Score {
+    fn eq(&self, other: &Self) -> bool {
+        default().is_close(self.0, other.0)
+    }
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+struct Test(Vec<Score>);
 
 #[test]
 fn test_debug_vector() {
@@ -36,9 +52,15 @@ fn test_yaml_vector() {
 #[cfg(feature = "yaml")]
 #[test]
 fn test_unnamed_yaml_vector() {
-    assert_yaml_snapshot!(vec![1, 2, 3]);
-    assert_yaml_snapshot!(vec![1, 2, 3, 4]);
-    assert_yaml_snapshot!(vec![1, 2, 3, 4, 5]);
+    let yaml_matcher = YamlMatcher::<Test>::new();
+
+    assert_yaml_snapshot!(
+        "unnamed_yaml_vector",
+        vec![1.0, 2.0000001, 3.0],
+        &yaml_matcher
+    );
+    assert_yaml_snapshot!("unnamed_yaml_vector-2", vec![1, 2, 3, 4], &yaml_matcher);
+    assert_yaml_snapshot!("unnamed_yaml_vector-3", vec![1, 2, 3, 4, 5], &yaml_matcher);
 }
 
 #[cfg(feature = "json")]

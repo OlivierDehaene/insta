@@ -162,15 +162,22 @@ macro_rules! assert_yaml_snapshot {
     ($value:expr, $(match ..)? {$($k:expr => $v:expr),*$(,)?}) => {{
         $crate::_assert_serialized_snapshot!($crate::_macro_support::AutoName, $value, {$($k => $v),*}, Yaml);
     }};
+    ($name:expr, $value:expr, $matcher:expr) => {{
+        $crate::_assert_serialized_snapshot!(Some($name), $value, $matcher, Yaml);
+    }};
     ($name:expr, $value:expr) => {{
         $crate::_assert_serialized_snapshot!(Some($name), $value, Yaml);
     }};
     ($name:expr, $value:expr, $(match ..)? {$($k:expr => $v:expr),*$(,)?}) => {{
         $crate::_assert_serialized_snapshot!(Some($name), $value, {$($k => $v),*}, Yaml);
     }};
+    // ($name:expr, $value:expr, $matcher:expr) => {{
+    //     $crate::_assert_serialized_snapshot!(Some($name), $value, $matcher, Yaml);
+    // }};
     ($value:expr) => {{
         $crate::_assert_serialized_snapshot!($crate::_macro_support::AutoName, $value, Yaml);
     }};
+
 }
 
 /// Asserts a `Serialize` snapshot in RON format.
@@ -255,6 +262,9 @@ macro_rules! assert_json_snapshot {
     ($name:expr, $value:expr) => {{
         $crate::_assert_serialized_snapshot!(Some($name), $value, Json);
     }};
+        ($name:expr, $value:expr, $matcher:expr) => {{
+        $crate::_assert_serialized_snapshot!(Some($name), $value, $matcher, Json);
+    }};
     ($name:expr, $value:expr, $(match ..)? {$($k:expr => $v:expr),*$(,)?}) => {{
         $crate::_assert_serialized_snapshot!(Some($name), $value, {$($k => $v),*}, Json);
     }};
@@ -337,6 +347,19 @@ macro_rules! _assert_serialized_snapshot {
         $crate::assert_snapshot!(
             $name,
             value,
+            stringify!($value)
+        );
+    }};
+    ($name:expr, $value:expr, $matcher:expr, $format:ident) => {{
+        let value = $crate::_macro_support::serialize_value(
+            &$value,
+            $crate::_macro_support::SerializationFormat::$format,
+            $crate::_macro_support::SnapshotLocation::File
+        );
+        $crate::assert_snapshot!(
+            $name,
+            value,
+            $matcher,
             stringify!($value)
         );
     }};
@@ -476,6 +499,22 @@ macro_rules! assert_snapshot {
             file!(),
             line!(),
             $debug_expr,
+            None,
+        )
+        .unwrap()
+    }};
+    ($name:expr, $value:expr, $matcher:expr, $debug_expr:expr) => {{
+        $crate::_macro_support::assert_snapshot(
+            // Creates a ReferenceValue::Named variant
+            $name.into(),
+            &$value,
+            env!("CARGO_MANIFEST_DIR"),
+            $crate::_function_name!(),
+            module_path!(),
+            file!(),
+            line!(),
+            $debug_expr,
+            Some(Box::new($matcher)),
         )
         .unwrap()
     }};

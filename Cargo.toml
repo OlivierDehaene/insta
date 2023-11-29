@@ -44,7 +44,7 @@ csv = ["dep_csv", "serde"]
 json = ["serde"]
 ron = ["dep_ron", "serde"]
 toml = ["dep_toml", "serde"]
-yaml = ["serde"]
+yaml = ["serde", "serde_yaml"]
 
 # internal feature exclusive to cargo-insta
 _cargo_insta_internal = []
@@ -61,6 +61,7 @@ walkdir = { version = "2.3.1", optional = true }
 similar = { version = "2.1.0", features = ["inline"] }
 regex = { version = "1.6.0", default-features = false, optional = true, features = ["std", "unicode"] }
 yaml-rust = "0.4.5"
+serde_yaml = { version = "0.9.25", optional = true }
 serde = { version = "1.0.117", optional = true }
 linked-hash-map = "0.5.6"
 lazy_static = "1.4.0"
@@ -68,3 +69,4 @@ lazy_static = "1.4.0"
 [dev-dependencies]
 serde = { version = "1.0.117", features = ["derive"] }
 similar-asserts = "1.4.2"
+is_close = "0.1.3"
